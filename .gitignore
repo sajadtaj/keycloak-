@@ -1,0 +1,56 @@
+# ---- Python / Django (اگر در پروژه استفاده شود)
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+*.log
+
+# ---- Keycloak Docker
+data/
+tmp/
+*.db
+*.log
+*.pid
+
+# ---- Docker
+*.pid
+*.seed
+*.swp
+docker-compose.override.yml
+.docker/
+.env
+.env.local
+.env.*.local
+
+# ---- Keycloak specific
+standalone/
+standalone_tmp/
+standalone/configuration/standalone.xml
+standalone/configuration/keycloak-add-user.json
+standalone/data/
+standalone/log/
+
+# ---- IDEs & Editors
+.vscode/
+.idea/
+*.iml
+
+# ---- OS files
+.DS_Store
+Thumbs.db
+
+# ---- Backup / Temp
+*.bak
+*.tmp
+*.swp
+
+#--- compress file
+*.zip
+*.rar
+
+
+# JDK
+keycloak-26.3.3/
+
