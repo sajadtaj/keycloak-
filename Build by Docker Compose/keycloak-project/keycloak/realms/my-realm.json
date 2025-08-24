@@ -1,0 +1,20 @@
+{
+  "realm": "myrealm",
+  "enabled": true,
+  "users": [
+    {
+      "username": "demo",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "change_me_strong",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

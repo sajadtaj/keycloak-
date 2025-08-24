@@ -1,0 +1,81 @@
+services:
+  db:
+    build: ./postgresql
+    image: local/pg-keycloak:16-alpine
+    container_name: keycloak_db
+    env_file: ./.env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - KC_DB_SCHEMA=${KC_DB_SCHEMA}
+
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  keycloak:
+    build: ./keycloak
+    image: local/keycloak:26.3.3
+    container_name: keycloak
+    env_file: ./.env
+    environment:
+      # --- DB ---
+      - KC_DB=${KC_DB}
+      - KC_DB_USERNAME=${KC_DB_USERNAME}
+      - KC_DB_PASSWORD=${KC_DB_PASSWORD}
+      - KC_DB_URL_HOST=${KC_DB_URL_HOST}
+      - KC_DB_URL_DATABASE=${KC_DB_URL_DATABASE}
+      - KC_DB_SCHEMA=${KC_DB_SCHEMA}
+
+      # --- Admin bootstrap ---
+      - KC_BOOTSTRAP_ADMIN_USERNAME=${KC_BOOTSTRAP_ADMIN_USERNAME}
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=${KC_BOOTSTRAP_ADMIN_PASSWORD}
+
+      # --- Proxy/Hostname (در صورت نیاز) ---
+      - KC_PROXY=${KC_PROXY}
+
+      # --- Logging: فعال‌سازی فایل + JSON (ECS-friendly) ---
+      - KC_LOG=file,console
+      - KC_LOG_LEVEL=${KC_LOG_LEVEL:-info}
+      - KC_LOG_FILE=/opt/keycloak/data/log/keycloak.log
+      - KC_LOG_FILE_OUTPUT=json
+      - KC_LOG_FILE_JSON_FORMAT=ecs
+      # مثال override سطح یک دسته:
+      # - KC_LOG_LEVEL_ORG_KEYCLOAK=debug
+
+      # --- Metrics/Event-metrics ---
+      - KC_FEATURES=user-event-metrics
+      - KC_EVENT_METRICS_USER_ENABLED=true
+
+    # dev: با import realm بالا بیاید
+    command: ["start-dev", "--import-realm", "--metrics-enabled=true", "--health-enabled=true"]
+    # prod: در پروفایل جدا با "start --optimized" اجرا کن
+
+    ports:
+      - "8080:8080"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    volumes:
+      # پیکربندی سرور (قابل ویرایش از میزبان)
+      - ./keycloak/conf:/opt/keycloak/conf
+      # لاگ‌ها روی میزبان ذخیره شود
+      - ./keycloak/logs:/opt/keycloak/data/log
+      # داده‌ها (import/realms, themes, cache, …)
+      
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  pg_data:
+  kc_data:
